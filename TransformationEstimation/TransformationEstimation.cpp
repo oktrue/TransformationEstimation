@@ -3,8 +3,6 @@
 
 #include "TransformationEstimation.h"
 
-using namespace std;
-
 int main()
 {
 	pcl::PointCloud<pcl::PointXYZ> src, tgt;
@@ -42,5 +40,6 @@ int main()
 	std::cout << R << std::endl;
 	std::cout << euler << std::endl;
 
+	std::cin.get();
 	return 0;
 }
