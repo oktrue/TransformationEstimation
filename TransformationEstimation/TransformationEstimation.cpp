@@ -31,44 +31,86 @@ void estimateIndices(const PointCloud<PointXYZ> src, const PointCloud<PointXYZ> 
 		}
 	}
 
+	auto srcRow = srcDist.row(0);
+
+	Eigen::VectorXf x = srcRow;
+	ArrayXf v = srcRow;
+	//std::sort(v.begin(), v.end());
+	//std::sort(begin(v), end(v), std::greater<float>());
+
+	//std::sort(begin(vec), end(vec), FooSorter());
+
 	//TODO: Add distance sorting and indices sorting based on it
+	cout << "Src distances:" << endl;
 	cout << srcDist << endl;
+	cout << endl;
+	cout << "Tgt distances:" << endl;
 	cout << tgtDist << endl;
+	cout << endl;
+
+	for (int i = 0; i < src.size(); i++)
+	{
+		for (int j = 0; j < src.size(); j++)
+		{
+			if (i != j)
+			{
+				if (abs(srcDist(i, j) - tgtDist(i, j)) < tolerance)
+				{
+					ind.push_back(j);
+					cout << j << endl;
+				}
+			}
+		}
+	}
 
 	//Find correspondence
 	if ((srcDist - tgtDist).cwiseAbs().norm() < tolerance)
 	{
 		cout << "Matrices are equals" << endl;
+		cout << endl;
 		ind.push_back(0);
 		ind.push_back(1);
 		ind.push_back(2);
+		ind.push_back(3);
+		ind.push_back(4);
 	}
 	else
 	{
 		cout << "Matrices are not equals" << endl;
+		cout << endl;
 		ind.push_back(0);
 		ind.push_back(2);
 		ind.push_back(1);
+		ind.push_back(3);
+		ind.push_back(4);
 	}
 }
 
 int main()
 {
 	PointCloud<PointXYZ>::Ptr src(new PointCloud<PointXYZ>);
-	auto p0 = PointXYZ(0, 0, 0);
-	auto p1 = PointXYZ(20.000, 80.042, 2.530);
-	auto p2 = PointXYZ(60.000, 10.042, -5.530);
-	src->push_back(p0);
+	auto p1 = PointXYZ(0, 0, 0);
+	auto p2 = PointXYZ(20.000, 80.042, 2.530);
+	auto p3 = PointXYZ(60.000, 10.042, -5.530);
+	auto p4 = PointXYZ(-52.0, 63.11, 0.28);
+	auto p5 = PointXYZ(-10.00, -13.000, -2.030);
 	src->push_back(p1);
 	src->push_back(p2);
+	src->push_back(p3);
+	src->push_back(p4);
+	src->push_back(p5);
 
 	PointCloud<PointXYZ>::Ptr tgt(new PointCloud<PointXYZ>);
-	auto p0t = PointXYZ(20, 10, -20);
-	auto p2t = PointXYZ(-22.456, 80.740, -17.470);
-	auto p1t = PointXYZ(55.326, 59.527, -25.530);
-	tgt->push_back(p0t);
+	auto p5t = PointXYZ(10.000, 20.000, 30.000);
+	auto p3t = PointXYZ(-32.456, 90.740, 32.530);
+	auto p2t = PointXYZ(45.326, 69.527, 24.470);
+	auto p4t = PointXYZ(-71.395, 27.856, 30.280);
+	auto p1t = PointXYZ(12.121, 3.737, 27.970);
 	tgt->push_back(p1t);
 	tgt->push_back(p2t);
+	tgt->push_back(p3t);
+	tgt->push_back(p4t);
+	tgt->push_back(p5t);
 
 	//indices
 	Indices ind;
