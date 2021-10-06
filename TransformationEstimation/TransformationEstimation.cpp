@@ -8,71 +8,48 @@ using namespace pcl;
 using namespace pcl::registration;
 using namespace Eigen;
 
-void EstimateIndices(const PointCloud<PointXYZ> src, const PointCloud<PointXYZ> tgt, Indices& ind, const float allowance = 0.01)
+void estimateIndices(const PointCloud<PointXYZ> src, const PointCloud<PointXYZ> tgt, Indices& ind, const float tolerance = 0.1f)
 {
-	std::vector<std::vector<float>> srcDistances;
-	std::vector<std::vector<float>> tgtDistances;
+	MatrixXf srcDist(src.size(), src.size());
+	MatrixXf tgtDist(src.size(), src.size());
 
 	//Calc all distances for src point cloud
-	for (auto currentPoint : src)
+	for (int i = 0; i < src.size(); i++)
 	{
-		std::vector<float> distances;
-
-		for (auto point : src)
+		for (int j = 0; j < src.size(); j++)
 		{
-			auto d = pcl::geometry::distance(currentPoint, point);
-			distances.push_back(d);
+			srcDist(i, j) = pcl::geometry::distance(src[i], src[j]);
 		}
-
-		srcDistances.push_back(distances);
 	}
 
 	//Calc all distances for tgt point cloud
-	for (auto currentPoint : tgt)
+	for (int i = 0; i < tgt.size(); i++)
 	{
-		std::vector<float> distances;
-
-		for (auto point : tgt)
+		for (int j = 0; j < tgt.size(); j++)
 		{
-			auto d = pcl::geometry::distance(currentPoint, point);
-			distances.push_back(d);
+			tgtDist(i, j) = pcl::geometry::distance(tgt[i], tgt[j]);
 		}
-
-		tgtDistances.push_back(distances);
 	}
+
+	//TODO: Add distance sorting and indices sorting based on it
+	cout << srcDist << endl;
+	cout << tgtDist << endl;
 
 	//Find correspondence
-	for (auto currentPointDistances : srcDistances)
-	{
-
-	}
-
-	Eigen::Matrix<float, 2, 2> a;
-	Eigen::Matrix<float, 2, 2> b;
-	a(0, 0) = 1.6f;
-	a(0, 1) = 1.0f;
-	a(1, 0) = 1.0f;
-	a(1, 1) = 1.0f;
-	b(0, 0) = 1.7f;
-	b(0, 1) = 1.0f;
-	b(1, 0) = 1.0f;
-	b(1, 1) = 1.25f;
-	auto c = (a - b).cwiseAbs();
-
-	cout << a << endl;
-	cout << b << endl;
-	cout << c << endl;
-
-	if (c.norm() < 0.2f)
+	if ((srcDist - tgtDist).cwiseAbs().norm() < tolerance)
 	{
 		cout << "Matrices are equals" << endl;
+		ind.push_back(0);
+		ind.push_back(1);
+		ind.push_back(2);
 	}
 	else
 	{
 		cout << "Matrices are not equals" << endl;
+		ind.push_back(0);
+		ind.push_back(2);
+		ind.push_back(1);
 	}
-
-	cout << "Finished" << endl;
 }
 
 int main()
@@ -95,24 +72,11 @@ int main()
 
 	//indices
 	Indices ind;
-	ind.push_back(0);
-	ind.push_back(2);
-	ind.push_back(1);
-
-	EstimateIndices(*src, *tgt, ind);
-
-	//correspondences
-	CorrespondenceEstimation<PointXYZ, PointXYZ> ce;
-	ce.setInputSource(src);
-	ce.setInputTarget(tgt);
-	Correspondences all_correspondences;
-	ce.determineReciprocalCorrespondences(all_correspondences);
+	estimateIndices(*src, *tgt, ind);
 
 	//svd
 	TransformationEstimationSVD<PointXYZ, PointXYZ> te;
 	Matrix4f t;
-	//te.estimateRigidTransformation(*src, *tgt, all_correspondences, t);
-	//te.estimateRigidTransformation(*src, *tgt, t);
 	te.estimateRigidTransformation(*src, ind, *tgt, t);
 	Matrix3f r = t.topLeftCorner<3, 3>();
 	Vector3f e = r.eulerAngles(2, 1, 0);
