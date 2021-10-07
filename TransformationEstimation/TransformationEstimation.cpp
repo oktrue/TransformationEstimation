@@ -8,12 +8,12 @@ using namespace pcl;
 using namespace pcl::registration;
 using namespace Eigen;
 
-void estimateIndices(const PointCloud<PointXYZ> src, const PointCloud<PointXYZ> tgt, Indices& ind, const float tolerance = 0.1f)
+void EstimateIndices(const PointCloud<PointXYZ> src, const PointCloud<PointXYZ> tgt, Indices& ind, const float tolerance = 0.1f)
 {
 	MatrixXf srcDist(src.size(), src.size());
 	MatrixXf tgtDist(src.size(), src.size());
 
-	//Calc all distances for src point cloud
+	//calc all distances for src point cloud
 	for (int i = 0; i < src.size(); i++)
 	{
 		for (int j = 0; j < src.size(); j++)
@@ -22,7 +22,7 @@ void estimateIndices(const PointCloud<PointXYZ> src, const PointCloud<PointXYZ> 
 		}
 	}
 
-	//Calc all distances for tgt point cloud
+	//calc all distances for tgt point cloud
 	for (int i = 0; i < tgt.size(); i++)
 	{
 		for (int j = 0; j < tgt.size(); j++)
@@ -31,90 +31,63 @@ void estimateIndices(const PointCloud<PointXYZ> src, const PointCloud<PointXYZ> 
 		}
 	}
 
-	auto srcRow = srcDist.row(0);
-
-	Eigen::VectorXf x = srcRow;
-	ArrayXf v = srcRow;
-	//std::sort(v.begin(), v.end());
-	//std::sort(begin(v), end(v), std::greater<float>());
-
-	//std::sort(begin(vec), end(vec), FooSorter());
-
-	//TODO: Add distance sorting and indices sorting based on it
-	cout << "Src distances:" << endl;
+	cout << "src distances:" << endl;
 	cout << srcDist << endl;
 	cout << endl;
-	cout << "Tgt distances:" << endl;
+	cout << "tgt distances:" << endl;
 	cout << tgtDist << endl;
 	cout << endl;
+	cout << "correspondence:" << endl;
 
-	for (int i = 0; i < src.size(); i++)
+	//find correspondence
+	for (int i = 0; i < tgt.size(); i++)
 	{
+		Eigen::VectorXf vTgt = tgtDist.row(i);
+		std::vector<float> vecTgt(&vTgt[0], vTgt.data() + vTgt.cols() * vTgt.rows());
+		std::sort(begin(vecTgt), end(vecTgt), std::greater<float>());
+		Eigen::VectorXf vTgtSorted = Eigen::Map<Eigen::VectorXf, Eigen::Unaligned>(vecTgt.data(), vecTgt.size());
+
 		for (int j = 0; j < src.size(); j++)
 		{
-			if (i != j)
+			Eigen::VectorXf vSrc = srcDist.row(j);
+			std::vector<float> vecSrc(&vSrc[0], vSrc.data() + vSrc.cols() * vSrc.rows());
+			std::sort(begin(vecSrc), end(vecSrc), std::greater<float>());
+			Eigen::VectorXf vSrcSorted = Eigen::Map<Eigen::VectorXf, Eigen::Unaligned>(vecSrc.data(), vecSrc.size());
+
+			if ((vTgtSorted - vSrcSorted).cwiseAbs().norm() < tolerance)
 			{
-				if (abs(srcDist(i, j) - tgtDist(i, j)) < tolerance)
-				{
-					ind.push_back(j);
-					cout << j << endl;
-				}
+				ind.push_back(j);
+				cout << j << endl;
 			}
 		}
 	}
-
-	//Find correspondence
-	if ((srcDist - tgtDist).cwiseAbs().norm() < tolerance)
-	{
-		cout << "Matrices are equals" << endl;
-		cout << endl;
-		ind.push_back(0);
-		ind.push_back(1);
-		ind.push_back(2);
-		ind.push_back(3);
-		ind.push_back(4);
-	}
-	else
-	{
-		cout << "Matrices are not equals" << endl;
-		cout << endl;
-		ind.push_back(0);
-		ind.push_back(2);
-		ind.push_back(1);
-		ind.push_back(3);
-		ind.push_back(4);
-	}
+	cout << endl;
 }
 
-int main()
+extern "C" __declspec(dllexport) void EstimateTransformation(float points[][3], int count)
 {
 	PointCloud<PointXYZ>::Ptr src(new PointCloud<PointXYZ>);
-	auto p1 = PointXYZ(0, 0, 0);
-	auto p2 = PointXYZ(20.000, 80.042, 2.530);
-	auto p3 = PointXYZ(60.000, 10.042, -5.530);
-	auto p4 = PointXYZ(-52.0, 63.11, 0.28);
-	auto p5 = PointXYZ(-10.00, -13.000, -2.030);
-	src->push_back(p1);
-	src->push_back(p2);
-	src->push_back(p3);
-	src->push_back(p4);
-	src->push_back(p5);
+
+	for (int i = 0; i < count; i++)
+	{
+		src->push_back(PointXYZ(points[i][0], points[i][1], points[i][2]));
+	}
 
 	PointCloud<PointXYZ>::Ptr tgt(new PointCloud<PointXYZ>);
-	auto p5t = PointXYZ(10.000, 20.000, 30.000);
-	auto p3t = PointXYZ(-32.456, 90.740, 32.530);
+	auto p0t = PointXYZ(10.000, 20.000, 30.000);
+	auto p1t = PointXYZ(-32.456, 90.740, 32.530);
 	auto p2t = PointXYZ(45.326, 69.527, 24.470);
-	auto p4t = PointXYZ(-71.395, 27.856, 30.280);
-	auto p1t = PointXYZ(12.121, 3.737, 27.970);
+	auto p3t = PointXYZ(-71.395, 27.856, 30.280);
+	auto p4t = PointXYZ(12.121, 3.737, 27.970);
+	tgt->push_back(p0t);
 	tgt->push_back(p1t);
 	tgt->push_back(p2t);
 	tgt->push_back(p3t);
 	tgt->push_back(p4t);
-	tgt->push_back(p5t);
 
 	//indices
 	Indices ind;
-	estimateIndices(*src, *tgt, ind);
+	EstimateIndices(*src, *tgt, ind);
 
 	//svd
 	TransformationEstimationSVD<PointXYZ, PointXYZ> te;
@@ -123,11 +96,26 @@ int main()
 	Matrix3f r = t.topLeftCorner<3, 3>();
 	Vector3f e = r.eulerAngles(2, 1, 0);
 	e *= 180 / M_PI;
-	cout << "Transformation matrix:" << endl;
+	cout << "transformation matrix:" << endl;
 	cout << t << endl;
 	cout << endl;
-	cout << "Euler angles:" << endl;
+	cout << "euler angles:" << endl;
 	cout << e << endl;
+}
+
+int main()
+{
+	float src[][3] = 
+	{
+		{ -52.0, 63.11, 0.28 },
+		{ 60.000, 10.042, -5.530 },
+		{ 0, 0, 0 },
+		{ 20.000, 80.042, 2.530 },
+		{ -10.00, -13.000, -2.030 }
+	};
+	 
+	EstimateTransformation(src, 5);
+
 	cin.get();
 	return 0;
 }
