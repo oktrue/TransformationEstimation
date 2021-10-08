@@ -74,16 +74,16 @@ extern "C" __declspec(dllexport) void EstimateTransformation(float points[][3], 
 	}
 
 	PointCloud<PointXYZ>::Ptr tgt(new PointCloud<PointXYZ>);
-	auto p0t = PointXYZ(10.000, 20.000, 30.000);
-	auto p1t = PointXYZ(-32.456, 90.740, 32.530);
-	auto p2t = PointXYZ(45.326, 69.527, 24.470);
-	auto p3t = PointXYZ(-71.395, 27.856, 30.280);
-	auto p4t = PointXYZ(12.121, 3.737, 27.970);
+	auto p0t = PointXYZ(4773.6846f, -1567.714f, 836.689f);
+	auto p1t = PointXYZ(1064.5259f, 1966.0875f, -187.70764f);
+	auto p2t = PointXYZ(5249.238f, 1048.2821f, -234.27676f);
+	//auto p3t = PointXYZ(-71.395, 27.856, 30.280);
+	//auto p4t = PointXYZ(12.121, 3.737, 27.970);
 	tgt->push_back(p0t);
 	tgt->push_back(p1t);
 	tgt->push_back(p2t);
-	tgt->push_back(p3t);
-	tgt->push_back(p4t);
+	//tgt->push_back(p3t);
+	//tgt->push_back(p4t);
 
 	//indices
 	Indices ind;
