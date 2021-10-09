@@ -8,7 +8,7 @@ using namespace pcl;
 using namespace pcl::registration;
 using namespace Eigen;
 
-void EstimateIndices(const PointCloud<PointXYZ> src, const PointCloud<PointXYZ> tgt, Indices& ind, const float tolerance = 0.1f)
+void EstimateIndices(const PointCloud<PointXYZ> src, const PointCloud<PointXYZ> tgt, Indices& ind, const float tolerance)
 {
 	MatrixXf srcDist(src.size(), src.size());
 	MatrixXf tgtDist(src.size(), src.size());
@@ -64,7 +64,7 @@ void EstimateIndices(const PointCloud<PointXYZ> src, const PointCloud<PointXYZ> 
 	cout << endl;
 }
 
-extern "C" __declspec(dllexport) void EstimateTransformation(float points[][3], int count)
+extern "C" __declspec(dllexport) void EstimateTransformation(float points[][3], int count, float tolerance = 15.0)
 {
 	PointCloud<PointXYZ>::Ptr src(new PointCloud<PointXYZ>);
 
@@ -74,9 +74,9 @@ extern "C" __declspec(dllexport) void EstimateTransformation(float points[][3], 
 	}
 
 	PointCloud<PointXYZ>::Ptr tgt(new PointCloud<PointXYZ>);
-	auto p0t = PointXYZ(4773.6846f, -1567.714f, 836.689f);
-	auto p1t = PointXYZ(1064.5259f, 1966.0875f, -187.70764f);
-	auto p2t = PointXYZ(5249.238f, 1048.2821f, -234.27676f);
+	auto p0t = PointXYZ(4773.6846, -1567.714, 836.689);
+	auto p1t = PointXYZ(1064.5259, 1966.0875, -187.70764);
+	auto p2t = PointXYZ(5249.238, 1048.2821, -234.27676);
 	//auto p3t = PointXYZ(-71.395, 27.856, 30.280);
 	//auto p4t = PointXYZ(12.121, 3.737, 27.970);
 	tgt->push_back(p0t);
@@ -87,7 +87,7 @@ extern "C" __declspec(dllexport) void EstimateTransformation(float points[][3], 
 
 	//indices
 	Indices ind;
-	EstimateIndices(*src, *tgt, ind);
+	EstimateIndices(*src, *tgt, ind, tolerance);
 
 	//svd
 	TransformationEstimationSVD<PointXYZ, PointXYZ> te;
