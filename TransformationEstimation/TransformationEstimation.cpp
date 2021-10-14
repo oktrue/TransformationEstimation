@@ -74,12 +74,18 @@ extern "C" __declspec(dllexport) void EstimateTransformation(float points[][3], 
 	}
 
 	PointCloud<PointXYZ>::Ptr tgt(new PointCloud<PointXYZ>);
-	auto p0t = PointXYZ(4773.6846, -1567.714, 836.689);
-	auto p1t = PointXYZ(1064.5259, 1966.0875, -187.70764);
-	auto p2t = PointXYZ(5249.238, 1048.2821, -234.27676);
+	auto p0t = PointXYZ(2000.01, 1500.02, 0.04);
+	auto p1t = PointXYZ(2000.00, -1500.01, 0.00);
+	auto p2t = PointXYZ(-2000.00, -1500.01, 0.00);
+	auto p3t = PointXYZ(-2000.03, 1500.02, 0.02);
+	auto p4t = PointXYZ(1499.98, -1100.02, 250.00);
+	auto p5t = PointXYZ(-1400.01, 1499.98, 249.97);
 	tgt->push_back(p0t);
 	tgt->push_back(p1t);
 	tgt->push_back(p2t);
+	tgt->push_back(p3t);
+	tgt->push_back(p4t);
+	tgt->push_back(p5t);
 
 	//indices
 	Indices ind;
@@ -95,7 +101,7 @@ extern "C" __declspec(dllexport) void EstimateTransformation(float points[][3], 
 	cout << "transformation matrix:" << endl;
 	cout << t << endl;
 	cout << endl;
-	cout << "euler angles:" << endl;
+	cout << "euler angles (ZYX):" << endl;
 	cout << e << endl;
 
 	transformation[0] = t(0, 3);
@@ -110,12 +116,17 @@ int main()
 {
 	float src[][3] =
 	{
-		{ 64.044304, 2693.0754, -170.95724 },
-		{ 4242.071, 3637.872, -194.96318 },
-		{ 4917.587, 1063.1492, 863.1775 }
+		{ 6334.94,  -1913.52,  -447.56 },
+		{ 3486.32,  -2748.48,  -881.17 },
+		{ 4365.70,  -3796.57,  -4639.95 },
+		{ 7214.34,  -2961.53,  -4206.33 },
+		{ 3920.10,  -2537.19,  -1370.76 },
+		{ 7026.48,  -2573.33,  -3720.01 }
 	};
 
-	//EstimateTransformation(src, 3);
+	float transformation[6];
+
+	EstimateTransformation(src, 6, transformation, 0.5);
 
 	cin.get();
 	return 0;
